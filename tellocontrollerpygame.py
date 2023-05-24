@@ -7,30 +7,7 @@ import time
 import threading
 import numpy as np
 
-drone = djitellopy.Tello()
-drone.connect()
-
-print(drone.get_battery())
-
-# 打开视频流
-drone.streamon()
-
-FPS = 120
-
-pygame.init()
-joystickobj = pygame.joystick.Joystick(0)
-joystickobj.init()
-print(joystickobj.get_guid())
-print(joystickobj.get_name())
-
-axes = joystickobj.get_numaxes()
-
-# Creat pygame window
-# 创建pygame窗口
-pygame.display.set_caption("Tello video stream")
-screen = pygame.display.set_mode((960,720),flags = pygame.SCALED)
-
-def videoshow():
+def videoshow(drone,screen):
     frame = drone.get_frame_read().frame
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = np.rot90(frame)
@@ -54,10 +31,10 @@ def videoshow():
         
         #pygame.time.wait(10)   #pygame.time.wait(milliseconds)'''
 
-def main():
+def main(drone,axenum,FPS):
     done = False
-    axes = joystickobj.get_numaxes()
-    print("Number of axes: {}".format(axes))
+    
+    print("Number of axes: {}".format(axenum))
 
     SPEED = 100
     
@@ -80,7 +57,7 @@ def main():
             
 
             if event.type == pygame.JOYAXISMOTION:
-                for i in range(6):                 #左右摇杆,原range(4)
+                for i in range(axenum):                 #左右摇杆,原range(4)
                     axis = joystickobj.get_axis(i)
                     
                     
@@ -102,7 +79,7 @@ def main():
                             res[3] += int((axis + 1)/2 * SPEED)        #方向及速度res[3] = int(-axis * 50)
 
                 drone.send_rc_control(res[0],-res[1],res[3],res[2])    #send_rc_control(self, left_right_velocity, forward_backward_velocity,
-#up_down_velocity, yaw_velocity) （数值全为整数，范围-100-100）
+#up_down_velocity, yaw_velocity) （数值全为整数，范围-100-100，单位cm/s）
                     
                 
 
@@ -111,7 +88,7 @@ def main():
 
         
         
-        pygame.time.wait(50)    #原为pygame.time.wait(100)，单位毫秒，不能使用time.sleep()，它会阻塞pygame事件loop
+        pygame.time.wait(int(1000/FPS))    #原为pygame.time.wait(100)，单位毫秒，不能使用time.sleep()，它会阻塞pygame事件loop
                     
 
 ##        for i in range(axes):
@@ -126,11 +103,33 @@ def main():
 
 
 if __name__ == "__main__":
-    
-    videoer = threading.Thread(target = videoshow)
+    # Creat pygame window
+    # 创建pygame窗口
+    pygame.display.set_caption("Tello video stream")
+    screen = pygame.display.set_mode((960,720),flags = pygame.SCALED)
+
+    drone = djitellopy.Tello()
+    drone.connect()
+
+    print(drone.get_battery())
+
+    # 打开视频流
+    drone.streamon()
+
+    FPS = 120
+
+    pygame.init()
+    joystickobj = pygame.joystick.Joystick(0)
+    joystickobj.init()
+    print(joystickobj.get_guid())
+    print(joystickobj.get_name())
+
+    axenum = joystickobj.get_numaxes()
+        
+    videoer = threading.Thread(target = videoshow,args = (drone,screen))
     videoer.start()
 
-    main()
+    main(drone,axenum,FPS)
 
     
 
