@@ -1,4 +1,5 @@
 # Tello-Control-Program
+tellocontrollerpygame.py:
 
 tellocontrollerpygame.py allows you to 
 control a DJI Tello with a game controller 
@@ -21,3 +22,6 @@ down ---- Left Trigger
 
 right stick --- left/right to control yaw  
 left stick ---- forward/backward/left/right to control forward/backward/left/right velocity
+
+tellocameraflythreading.py：
+show video streaming while flying
